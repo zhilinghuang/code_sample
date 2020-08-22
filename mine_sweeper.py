@@ -3,6 +3,7 @@ import random
 from functools import reduce
 from typing import List, Tuple
 
+
 class MineSweeper:
     """Minesweeper class that starts a minesweeping game.
 
@@ -23,30 +24,30 @@ class MineSweeper:
             number_of_mines (int): Number of mines.
 
         """
-        self.board_size: int = board_size  # Size of the square gameboard.
-        self.number_of_mines: int = number_of_mines  # Number of mines.
-        self.seen_cells: int = 0  # Number of cells users have sweeped.
-        self.has_stepped_on_mine: bool = False  # Whether the player has stepped on mine.
+        self._board_size = board_size  # Size of the square gameboard.
+        self._number_of_mines = number_of_mines  # Number of mines.
+        self._seen_cells = 0  # Number of cells users have sweeped.
+        self._has_stepped_on_mine = False  # Whether the player has stepped on mine.
 
         # Gameboard boolean that says whether a mine exists in a cell.
-        self.game_board: List[List[bool]] = [
-            [False for i in range(self.board_size)] for j in range(self.board_size)]
+        self._game_board: List[List[bool]] = [
+            [False for i in range(self._board_size)] for j in range(self._board_size)]
 
         # Randomly sample indices to create m mines.
         all_indices: List(Tuple(int, int)) = reduce(
             lambda x, y: x + y,
-            [[(i, j) for j in range(self.board_size)] for i in range(self.board_size)])
-        mines: List(Tuple(int, int)) = random.sample(all_indices, self.number_of_mines)
+            [[(i, j) for j in range(self._board_size)] for i in range(self._board_size)])
+        mines: List(Tuple(int, int)) = random.sample(all_indices, self._number_of_mines)
         for (x, y) in mines:
-            self.game_board[x][y] = True
+            self._game_board[x][y] = True
 
         # Gameboard that player sees. "" means the user hasn't seen this cell; Positive number
         # means the number of mines around this cell; "M" means the user has sweeped a cell with
         # mine.
-        self.visualization_board: List[List[str]] = [
-            ["" for i in range(self.board_size)] for j in range(self.board_size)]
-
-        self.game_over = False
+        self._visualization_board: List[List[str]] = [
+            ["" for i in range(self._board_size)] for j in range(self._board_size)]
+        self._game_over = False
+        self._visualize()
 
 
     def _sweep(self, x: int, y: int):
@@ -62,11 +63,11 @@ class MineSweeper:
             y (int): Column to click.
 
         """
-        if x < 0 or x >= self.board_size or y < 0 or y >= self.board_size:
+        if x < 0 or x >= self._board_size or y < 0 or y >= self._board_size:
             print("Invalid entries.")
             return
 
-        if not self.visualization_board[x][y] == "":
+        if not self._visualization_board[x][y] == "":
             print("Cell already visited.")
             return
 
@@ -77,37 +78,37 @@ class MineSweeper:
         cells_to_sweep = [(x, y)]
         while cells_to_sweep:
             x, y = cells_to_sweep.pop()
-            if self.game_board[x][y]:  # Check if it is a mine.
-                self.has_stepped_on_mine = True
+            if self._game_board[x][y]:  # Check if it is a mine.
+                self._has_stepped_on_mine = True
                 # If stepped on a mine, show ALL mines' positions
-                for t in range(self.board_size):
-                    for q in range(self.board_size):
-                        if self.game_board[t][q]:
-                            self.visualization_board[t][q] = "M"
+                for t in range(self._board_size):
+                    for q in range(self._board_size):
+                        if self._game_board[t][q]:
+                            self._visualization_board[t][q] = "M"
                 return
             else:
                 # If this cell has already been sweeped, then continue.
-                if not self.visualization_board[x][y] == "":
+                if not self._visualization_board[x][y] == "":
                     continue
-                self.seen_cells += 1
+                self._seen_cells += 1
                 # Iterate through its neighbors and count number of mines.
                 count = 0
                 valid_neighbors: List[Tuple[int, int]] = []
-                for i in range(7):
+                for i in range(8):  # 8 possible neighbors in total
                     new_x = x + delta_x[i]
                     new_y = y + delta_y[i]
-                    if (new_x < 0 or new_x >= self.board_size
-                        or new_y< 0 or new_y >= self.board_size):
+                    if (new_x < 0 or new_x >= self._board_size
+                        or new_y < 0 or new_y >= self._board_size):
                         continue
                     valid_neighbors.append((new_x, new_y))
-                    count += self.game_board[new_x][new_y]
+                    count += self._game_board[new_x][new_y]
                 if not count == 0:
-                    self.visualization_board[x][y] = str(count)
+                    self._visualization_board[x][y] = str(count)
                 else:
                     # If there is no mine in the neighbor, automatically click all neighbors.
-                    self.visualization_board[x][y] = "0"
+                    self._visualization_board[x][y] = "0"
                     for neighbor in valid_neighbors:
-                        if self.visualization_board[neighbor[0]][neighbor[1]] == "":
+                        if self._visualization_board[neighbor[0]][neighbor[1]] == "":
                             cells_to_sweep.append((neighbor[0], neighbor[1]))
 
 
@@ -144,47 +145,47 @@ class MineSweeper:
         left_margin = 3
 
         print()
-        print(" " * int(cell_width * self.board_size / 2) + "MineSweeper")
+        print(" " * int(cell_width * self._board_size / 2) + "MineSweeper")
         print()
 
         # Drawing the horizontal header.
         horizontal_header = " " * left_margin
-        for i in range(self.board_size):
+        for i in range(self._board_size):
             horizontal_header = horizontal_header + " " * (cell_width - len(str(i))) + str(i)
         print(horizontal_header)
 
-        for i in range(self.board_size):
+        for i in range(self._board_size):
             st = " " * left_margin
             if i == 0:
-                for _ in range(self.board_size):
+                for _ in range(self._board_size):
                     st = st + "_" * cell_width
                 print(st)
 
-            # Drawing the first line of each cell.
+            # Drawing the first line of each row.
             st = " " * left_margin
-            for _ in range(self.board_size):
+            for _ in range(self._board_size):
                  st = st + "|" + " " * (cell_width - 1)
             print(st + "|")
 
-            # Drawing the second line of each cell, it also contains the vertical header.
+            # Drawing the second line of each row, it also contains the vertical header.
             st = str(i) + " " * (left_margin - len(str(i)))
-            for j in range(self.board_size):
+            for j in range(self._board_size):
                 # If visualization_board[i][j] is a number or "M", we can draw 1 less space.
                 # But if it is "", we still need to draw the space.
-                st = (st + "|" + " " + self.visualization_board[i][j] +
-                      " " * (cell_width - 2 - len(self.visualization_board[i][j])))
+                st = (st + "|" + " " + self._visualization_board[i][j] +
+                      " " * (cell_width - 2 - len(self._visualization_board[i][j])))
             print(st + "|")
 
-            # Drawing the third line of each cell.
+            # Drawing the third line of each row.
             st = " " * left_margin
-            for _ in range(self.board_size):
+            for _ in range(self._board_size):
                 st = st + "|" + "_" * (cell_width - 1)
             print(st + '|')
         print()
 
 
     def play(self, x: int, y: int):
-        """Clicking on a particular cell, (x, y), wrapper of _click.
+        """User decides to click on a particular cell, (x, y), wrapper of _click.
 
         The function calls _click and check whether the game is over.
 
@@ -193,23 +194,40 @@ class MineSweeper:
             y (int): Column to click.
 
         """
-        if self.game_over:
+        if self._game_over:
             print("Game is already over.")
 
         self._sweep(x, y)
         self._visualize()
 
-        if self.has_stepped_on_mine:
-            self.game_over = True
+        if self._has_stepped_on_mine:
+            self._game_over = True
             print("You lost the game.")
 
-        if self.seen_cells == self.board_size * self.board_size - self.number_of_mines:
-            self.game_over = True
+        if self._seen_cells == self._board_size * self._board_size - self._number_of_mines:
+            self._game_over = True
             print("You won!")
 
 
+    @property
+    def game_over(self):
+        return self._game_over
+
+
 if __name__ == "__main__":
-    m = MineSweeper(10, 15)
+    print("Enter board size and number of mines, eg \"10 10\":")
+    user_inputs = input()
+    indices = user_inputs.split()
+    while ((not len(indices) == 2)
+            or (not indices[0].isdigit())
+            or (not indices[1].isdigit())
+            or int(indices[0]) <= 0
+            or int(indices[1]) < 0):
+        print("Please enter valid board size and number of mines.")
+        user_inputs = input()
+        indices = user_inputs.split()
+
+    m = MineSweeper(int(indices[0]), int(indices[1]))
     while not m.game_over:
         print("Enter x and y, separated by space, eg \"1 3\":")
         user_inputs = input()
