@@ -10,13 +10,14 @@ class MineSweeper:
     The condition to win the game is to sweep all cells, except those
     with mines.
 
-    When the user sweeps on a cell that does not have mines, this calss will tell
-    the user how many mines that are adjacent to this cell, by showing a number.
-    If there is no adjacent mines, the mine_sweeper class will automatically "sweep"
-    those adjacent cells that are known to have no mines.
+    When the user sweeps on a cell that does not have mines,
+    this class will tell the user how many mines that are adjacent to this
+    cell, by showing a number. If there is no adjacent mines,
+    the mine_sweeper class will automatically "sweep" those adjacent
+    cells that are known to have no mines.
 
     """
-    def __init__(self, board_size: int = 50, number_of_mines: int = 10):
+    def __init__(self, board_size: int = 10, number_of_mines: int = 10):
         """Initialization of minesweeper.
 
         Args:
@@ -27,36 +28,41 @@ class MineSweeper:
         self._board_size = board_size  # Size of the square gameboard.
         self._number_of_mines = number_of_mines  # Number of mines.
         self._seen_cells = 0  # Number of cells users have sweeped.
-        self._has_stepped_on_mine = False  # Whether the player has stepped on mine.
+        self._has_stepped_on_mine = False
 
         # Gameboard boolean that says whether a mine exists in a cell.
         self._game_board: List[List[bool]] = [
-            [False for i in range(self._board_size)] for j in range(self._board_size)]
+            [False for i in range(board_size)] for j in range(board_size)]
 
         # Randomly sample indices to create m mines.
         all_indices: List(Tuple(int, int)) = reduce(
             lambda x, y: x + y,
-            [[(i, j) for j in range(self._board_size)] for i in range(self._board_size)])
-        mines: List(Tuple(int, int)) = random.sample(all_indices, self._number_of_mines)
+            [[(i, j) for j in range(board_size)] for i in range(board_size)])
+
+        mines: List(Tuple(int, int)) = random.sample(
+            all_indices, self._number_of_mines)
+
         for (x, y) in mines:
             self._game_board[x][y] = True
 
-        # Gameboard that player sees. "" means the user hasn't seen this cell; Positive number
-        # means the number of mines around this cell; "M" means the user has sweeped a cell with
-        # mine.
+        # Gameboard that player sees. "" means the user hasn't seen this cell;
+        # Positive number means the number of mines around this cell;
+        # "M" means the user has sweeped a cell with mine.
         self._visualization_board: List[List[str]] = [
-            ["" for i in range(self._board_size)] for j in range(self._board_size)]
+            ["" for i in range(board_size)] for j in range(board_size)]
         self._game_over = False
+
         self._visualize()
 
 
     def _sweep(self, x: int, y: int):
         """Clicking on a particular cell, (x, y).
 
-        It will show the number of cells adjacent to (x, y) that are mines. If (x, y) has a mine,
-        then show "M", which means user has sweeped a mine.
+        It will show the number of cells adjacent to (x, y) that are mines.
+        If (x, y) has a mine, then show "M". It means user has sweeped a mine.
 
-        If the cell has no neighboring mines, then it will automatically sweep its neighbors.
+        If the cell has no neighboring mines,
+        it will automatically sweep its neighbors.
 
          Args:
             x (int): Row to click.
@@ -105,11 +111,14 @@ class MineSweeper:
                 if not count == 0:
                     self._visualization_board[x][y] = str(count)
                 else:
-                    # If there is no mine in the neighbor, automatically click all neighbors.
+                    # If there is no mine in the neighbor,
+                    # automatically click all neighbors.
                     self._visualization_board[x][y] = "0"
                     for neighbor in valid_neighbors:
-                        if self._visualization_board[neighbor[0]][neighbor[1]] == "":
-                            cells_to_sweep.append((neighbor[0], neighbor[1]))
+                        n_x = neighbor[0]
+                        n_y = neighbor[1]
+                        if self._visualization_board[n_x][n_y] == "":
+                            cells_to_sweep.append((n_x, n_y))
 
 
     def _visualize(self):
@@ -151,7 +160,7 @@ class MineSweeper:
         # Drawing the horizontal header.
         horizontal_header = " " * left_margin
         for i in range(self._board_size):
-            horizontal_header = horizontal_header + " " * (cell_width - len(str(i))) + str(i)
+            horizontal_header += " " * (cell_width - len(str(i))) + str(i)
         print(horizontal_header)
 
         for i in range(self._board_size):
@@ -167,13 +176,18 @@ class MineSweeper:
                  st = st + "|" + " " * (cell_width - 1)
             print(st + "|")
 
-            # Drawing the second line of each row, it also contains the vertical header.
+            # Drawing the second line of each row,
+            # it also contains the vertical header.
             st = str(i) + " " * (left_margin - len(str(i)))
             for j in range(self._board_size):
-                # If visualization_board[i][j] is a number or "M", we can draw 1 less space.
+                # If visualization_board[i][j] is a number or "M",
+                # we can draw 1 less space.
                 # But if it is "", we still need to draw the space.
-                st = (st + "|" + " " + self._visualization_board[i][j] +
-                      " " * (cell_width - 2 - len(self._visualization_board[i][j])))
+                remaining_space = (
+                    cell_width - 2 - len(self._visualization_board[i][j]))
+                st += (
+                    "|" + " " + self._visualization_board[i][j]
+                    + " " * remaining_space)
             print(st + "|")
 
             # Drawing the third line of each row.
@@ -185,8 +199,9 @@ class MineSweeper:
 
 
     def play(self, x: int, y: int):
-        """User decides to click on a particular cell, (x, y), wrapper of _click.
+        """User decides to click on a particular cell, (x, y).
 
+        It is a wrapper of _click.
         The function calls _click and check whether the game is over.
 
          Args:
@@ -203,8 +218,10 @@ class MineSweeper:
         if self._has_stepped_on_mine:
             self._game_over = True
             print("You lost the game.")
+            return
 
-        if self._seen_cells == self._board_size * self._board_size - self._number_of_mines:
+        total_cells = self._board_size * self._board_size
+        if self._seen_cells == total_cells - self._number_of_mines:
             self._game_over = True
             print("You won!")
 
@@ -218,17 +235,21 @@ if __name__ == "__main__":
     print("Enter board size and number of mines, eg \"10 10\":")
     user_inputs = input()
     indices = user_inputs.split()
+    # Need to check that board_size is positive number
+    # and number of mines is non-negative.
+    # Also need to check that board is bigger than the number of mines.
     while ((not len(indices) == 2)
-            or (not indices[0].isdigit())
-            or (not indices[1].isdigit())
-            or int(indices[0]) <= 0
-            or int(indices[1]) < 0):
+           or (not indices[0].isdigit())
+           or (not indices[1].isdigit())
+           or int(indices[0]) <= 0
+           or int(indices[1]) < 0
+           or int(indices[0]) * int(indices[0]) < int(indices[1])):
         print("Please enter valid board size and number of mines.")
         user_inputs = input()
         indices = user_inputs.split()
 
-    m = MineSweeper(int(indices[0]), int(indices[1]))
-    while not m.game_over:
+    m_sweeper = MineSweeper(int(indices[0]), int(indices[1]))
+    while not m_sweeper.game_over:
         print("Enter x and y, separated by space, eg \"1 3\":")
         user_inputs = input()
         indices = user_inputs.split()
@@ -238,5 +259,5 @@ if __name__ == "__main__":
         if (not indices[0].isdigit()) or (not indices[1].isdigit()):
             print("Please enter valid indices.")
             continue
-        m.play(int(indices[0]), int(indices[1]))
+        m_sweeper.play(int(indices[0]), int(indices[1]))
 
