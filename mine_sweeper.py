@@ -1,6 +1,6 @@
 import random
 
-from functools import reduce
+from itertools import product
 from typing import List, Tuple
 
 
@@ -21,10 +21,15 @@ class MineSweeper:
         """Initialization of minesweeper.
 
         Args:
-            board_size (int): Width/Height of board.
+            board_size (int): Width/Height of square board.
             number_of_mines (int): Number of mines.
 
         """
+
+        assert board_size > 0
+        assert number_of_mines >= 0  # If there is 0 mine, then always wins
+        assert board_size * board_size >= number_of_mines
+
         self._board_size = board_size  # Size of the square gameboard.
         self._number_of_mines = number_of_mines  # Number of mines.
         self._seen_cells = 0  # Number of cells users have sweeped.
@@ -35,10 +40,8 @@ class MineSweeper:
             [False for i in range(board_size)] for j in range(board_size)]
 
         # Randomly sample indices to create m mines.
-        all_indices: List(Tuple(int, int)) = reduce(
-            lambda x, y: x + y,
-            [[(i, j) for j in range(board_size)] for i in range(board_size)])
-
+        all_indices: List(Tuple(int, int)) = list(
+            product([i for i in range(board_size)], repeat = 2))
         mines: List(Tuple(int, int)) = random.sample(
             all_indices, self._number_of_mines)
 
@@ -232,7 +235,7 @@ class MineSweeper:
 
 
 if __name__ == "__main__":
-    print("Enter board size and number of mines, eg \"10 10\":")
+    print("Enter square board size and number of mines, eg \"10 20\":")
     user_inputs = input()
     indices = user_inputs.split()
     # Need to check that board_size is positive number
